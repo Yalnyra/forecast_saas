@@ -42,7 +42,7 @@ def get_location(location: str, country: str, count=20):
     response = requests.request("GET", url, headers=headers)
     data = json.loads(response.text)
     if data["results"]:
-        cities = {}[data["results"]].sort("population")
+        cities = data["results"]
         for city in cities:
             if city["name"].upper() == location.upper() and city["country"].upper() == country.upper():
                 return {
