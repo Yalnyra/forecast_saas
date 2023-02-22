@@ -205,10 +205,8 @@ def forecast_endpoint():
             "longitude": weather_data["longitude"],
             "elevation": weather_data["elevation"],
             "timezone": weather_data["timezone"],
-            "hourly": {weather_data["hourly"]},
-            "hourly_units": {weather_data["hourly_units"]},
-            "daily": {weather_data["daily"]},
-            "daily_units": {weather_data["daily_units"]}
+            "hourly": weather_data["hourly"],
+            "hourly_units": weather_data["hourly_units"]
         }
     }
 
