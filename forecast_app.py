@@ -56,3 +56,60 @@ def home():
     return '<h1>Eugen Vinokur</h1>' \
            '<p><h2>KMA SaaS WS! For API please visit: </h2>' \
            '<a href="https://open-meteo.com/">link</a></p>'
+
+def validate_date(raw_date: str):
+    date = raw_date.split('-')
+    if len(date) != 3:
+        raise InvalidUsage("date must have 3 digits separated by '-' ", status_code=403)
+    for category in date:
+        if not category.isdigit():
+            raise InvalidUsage(f"{category} in {raw_date} is not a number ", status_code=403)
+    year = int(date[0])
+    if year < 1959:
+        raise InvalidUsage("no information about weather before year 1959 ", status_code=403)
+    month = int(date[1])
+    day = int(date[2])
+    if (1, 3, 5, 7, 8, 10, 12).__contains__(month) and 1 <= day <= 31:
+        return True
+    elif (4, 6, 9, 11).__contains__(month) and 1 <= day <= 30:
+        return True
+    elif month == 2 and 1 <= day <= 28:
+        return True
+    elif month == 2 and day == 29 and year % 4 == 0 and (year % 100 != 0 or year % 400 == 0):
+        return True
+    raise InvalidUsage("wrong day and month format ", status_code=403)
+
+@app.route("/api/v1/weather/",
+           methods=["POST"],)
+def forecast_endpoint():
+    request_time = dt.datetime.now()
+    data = request.get_json()
+
+    if data.get("token") is None:
+        raise InvalidUsage("token is required", status_code=400)
+
+    token = data.get("token")
+
+    if token != API_TOKEN:
+        raise InvalidUsage("wrong API token", status_code=403)
+
+    if data.get("requester_name") is None:
+        raise InvalidUsage("requester_name is required", status_code=400)
+
+    # later add check for requester_name to match format: Name Surname
+    requester_name = data.get("requester_name")
+
+    if data.get("date") is None:
+        raise InvalidUsage("date is required", status_code=400)
+
+    date = str(data.get("date")).strip()
+
+    validate_date(date)
+
+    result = {
+        "requester_name": requester_name,
+        "timestamp": request_time.isoformat(),
+        "date": date,
+    }
+
+    return result
