@@ -36,9 +36,23 @@ def handle_invalid_usage(error):
 def get_historic_data(latitude: float, longitude: float, date: str, **kwargs):
     url_base = "https://archive-api.open-meteo.com/v1"
     url_endpoint = "archive"
-    url_attrs = {"latitude": latitude, "longitude": longitude, "start_date": date, "end_date": date + 1}.append(kwaargs)
-    return None
+    url = f"{url_base}/{url_endpoint}" \
+          f"?latitude={latitude}" \
+          f"&longitude={longitude}" \
+          f"&start_date={date}" \
+          f"&end_date={date}"
+    if kwargs:
+        for keys in kwargs.keys():
+            url += f"&{keys}={kwargs[keys]}"
+
+    payload = {}
+    headers = {}
+
+    response = requests.request("GET", url, headers=headers, payload=payload)
+    return json.loads(response.text)
 
 @app.route("/")
 def home():
-    return '<h1>Eugen Vinokur</h1><p><h2>KMA SaaS WS! For API please visit: </h2><a href="https://open-meteo.com/">link</a></p>'
+    return '<h1>Eugen Vinokur</h1>' \
+           '<p><h2>KMA SaaS WS! For API please visit: </h2>' \
+           '<a href="https://open-meteo.com/">link</a></p>'
