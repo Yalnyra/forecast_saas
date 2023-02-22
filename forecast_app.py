@@ -41,7 +41,6 @@ def get_location(location: str, country:str, count=20):
 
     response = requests.request("GET", url, headers=headers)
     data = json.loads(response.text)
-    result = {}
     if data["results"]:
         cities = data["results"].sort("population")
         for city in cities:
@@ -129,7 +128,7 @@ def forecast_endpoint():
     if data.get("location") is None:
         raise InvalidUsage("location is required", status_code=400)
 
-    location_name = data.get("location").strip.split(",")
+    location_name = str(data.get("location")).strip().split(",")
 
     if len(location_name) < 2:
         raise InvalidUsage("location must contain city and country", status_code=403)
