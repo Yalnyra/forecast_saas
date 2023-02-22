@@ -70,17 +70,6 @@ def get_historic_data(latitude: float, longitude: float, elevation: float, date:
                    "windspeed_10m",
                    "winddirection_10m",
                    "weathercode")
-    daily_args = ("weathercode",
-                  "temperature_2m_max",
-                  "temperature_2m_min",
-                  "apparent_temperature_max",
-                  "apparent_temperature_min",
-                  "precipitation_sum",
-                  "precipitation_hours",
-                  "sunrise",
-                  "sunset",
-                  "windspeed_10m_max",
-                  "winddirection_10m_dominant")
     url = f"{url_base}/{url_endpoint}" \
           f"?latitude={latitude}" \
           f"&longitude={longitude}" \
@@ -91,8 +80,6 @@ def get_historic_data(latitude: float, longitude: float, elevation: float, date:
         for key in args:
             if key in hourly_args:
                 url += f"&hourly={key}"
-            elif key in daily_args:
-                url += f"&daily={key}"
 
     headers = {}
 
@@ -183,28 +170,17 @@ def forecast_endpoint():
                                      "windspeed_10m",
                                      "winddirection_10m",
                                      "weathercode",
-                                     "temperature_2m",
-                                     "relativehumidity_2m",
-                                     "dewpoint_2m",
-                                     "apparent_temperature",
-                                     "pressure_msl",
-                                     "precipitation",
-                                     "cloudcover",
-                                     "windspeed_10m",
-                                     "winddirection_10m",
-                                     "weathercode"
                                      )
 
     result = {
         "requester_name": requester_name,
-        "timestamp": request_time.isoformat(),
+        "timestamp": f"{request_time.isoformat()}:{weather_data['timezone']}",
         "location": f"{location['location']}, {location['country']} {location['country_code']}",
         "date": date,
         "weather": {
             "latitude": weather_data["latitude"],
             "longitude": weather_data["longitude"],
             "elevation": weather_data["elevation"],
-            "timezone": weather_data["timezone"],
             "hourly": weather_data["hourly"],
             "hourly_units": weather_data["hourly_units"]
         }
