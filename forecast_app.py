@@ -126,7 +126,7 @@ def forecast_endpoint():
     # later add check for requester_name to match format: Name Surname
     requester_name = data.get("requester_name")
 
-    if not str(requester_name).isalpha():
+    if not str(requester_name) is "":
         raise InvalidUsage("name must not be empty", status_code=403)
 
     if data.get("location") is None:
