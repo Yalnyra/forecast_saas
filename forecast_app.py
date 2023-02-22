@@ -3,13 +3,11 @@ import json
 import requests
 from flask import Flask, jsonify, request
 
-#API TOKEN
+# API TOKEN
 API_TOKEN = ""
 
-#API KEY
-RSA_API_KEY = ""
-
 app = Flask(__name__)
+
 
 class InvalidUsage(Exception):
     status_code = 400
@@ -33,6 +31,32 @@ def handle_invalid_usage(error):
     response.status_code = error.status_code
     return response
 
+
+def get_location(location: str, country:str, count=20):
+    url_endpoint = "https://geocoding-api.open-meteo.com/v1/search"
+    url = f"{url_endpoint}?name={location}&count={count}"
+
+    payload = {}
+    headers = {}
+
+    response = requests.request("GET", url, headers=headers)
+    data = json.loads(response.text)
+    result = {}
+    if data["results"]:
+        cities = data["results"].sort("population")
+        for city in cities:
+            if city["name"].upper() == location.upper() and city["country"].upper() == country.upper():
+                return {
+                    "location": city["name"],
+                    "latitude": city["latitude"],
+                    "longitude": city["longitude"],
+                    "elevation": city["elevation"],
+                    "country_code": city["country_code"],
+                    "country": city["country"]
+                }
+    raise InvalidUsage(f"information for the city {location}, {country} not found", status_code=404)
+
+
 def get_historic_data(latitude: float, longitude: float, date: str, **kwargs):
     url_base = "https://archive-api.open-meteo.com/v1"
     url_endpoint = "archive"
@@ -48,14 +72,16 @@ def get_historic_data(latitude: float, longitude: float, date: str, **kwargs):
     payload = {}
     headers = {}
 
-    response = requests.request("GET", url, headers=headers, payload=payload)
+    response = requests.request("GET", url, headers=headers)
     return json.loads(response.text)
+
 
 @app.route("/")
 def home():
     return '<h1>Eugen Vinokur</h1>' \
            '<p><h2>KMA SaaS WS! For API please visit: </h2>' \
            '<a href="https://open-meteo.com/">link</a></p>'
+
 
 def validate_date(raw_date: str):
     date = raw_date.split('-')
@@ -79,8 +105,9 @@ def validate_date(raw_date: str):
         return True
     raise InvalidUsage("wrong day and month format ", status_code=403)
 
+
 @app.route("/api/v1/weather/",
-           methods=["POST"],)
+           methods=["POST"], )
 def forecast_endpoint():
     request_time = dt.datetime.now()
     data = request.get_json()
@@ -99,6 +126,19 @@ def forecast_endpoint():
     # later add check for requester_name to match format: Name Surname
     requester_name = data.get("requester_name")
 
+    if not str(requester_name).isalpha():
+        raise InvalidUsage("name must not be empty", status_code=403)
+
+    if data.get("location") is None:
+        raise InvalidUsage("location is required", status_code=400)
+
+    location_name = data.get("location").strip.split(",")
+
+    if len(location_name) < 2:
+        raise InvalidUsage("location must contain city and country", status_code=403)
+
+    location = get_location(location_name[0], location_name[1])
+
     if data.get("date") is None:
         raise InvalidUsage("date is required", status_code=400)
 
@@ -109,6 +149,7 @@ def forecast_endpoint():
     result = {
         "requester_name": requester_name,
         "timestamp": request_time.isoformat(),
+        "location": f"{location['location']}, {location['country']} location{'country_code'}",
         "date": date,
     }
 
