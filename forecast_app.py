@@ -57,7 +57,7 @@ def get_location(location: str, country: str, count=20):
     raise InvalidUsage(f"information for the city {location}, {country} not found", status_code=404)
 
 
-def get_historic_data(latitude: float, longitude: float, elevation: float, date: str, **kwargs):
+def get_historic_data(latitude: float, longitude: float, elevation: float, date: str, *args):
     url_base = "https://archive-api.open-meteo.com/v1"
     url_endpoint = "archive"
     hourly_args = ("temperature_2m",
@@ -87,12 +87,12 @@ def get_historic_data(latitude: float, longitude: float, elevation: float, date:
           f"&elevation={elevation}" \
           f"&start_date={date}" \
           f"&end_date={date}"
-    if kwargs:
-        for key in kwargs.keys():
+    if args:
+        for key in args:
             if key in hourly_args:
-                url += f"&hourly={key}={kwargs[key]}"
+                url += f"&hourly={key}"
             elif key in daily_args:
-                url += f"&daily={key}={kwargs[key]}"
+                url += f"&daily={key}"
 
     headers = {}
 
@@ -170,7 +170,30 @@ def forecast_endpoint():
 
     validate_date(date)
 
-    weather_data = get_historic_data(location["latitude"], location["longitude"], location["elevation"], date)
+    weather_data = get_historic_data(location["latitude"],
+                                     location["longitude"],
+                                     location["elevation"],
+                                     date, "temperature_2m",
+                                     "relativehumidity_2m",
+                                     "dewpoint_2m",
+                                     "apparent_temperature",
+                                     "pressure_msl",
+                                     "precipitation",
+                                     "cloudcover",
+                                     "windspeed_10m",
+                                     "winddirection_10m",
+                                     "weathercode",
+                                     "temperature_2m",
+                                     "relativehumidity_2m",
+                                     "dewpoint_2m",
+                                     "apparent_temperature",
+                                     "pressure_msl",
+                                     "precipitation",
+                                     "cloudcover",
+                                     "windspeed_10m",
+                                     "winddirection_10m",
+                                     "weathercode"
+                                     )
 
     result = {
         "requester_name": requester_name,
@@ -178,13 +201,13 @@ def forecast_endpoint():
         "location": f"{location['location']}, {location['country']} {location['country_code']}",
         "date": date,
         "weather": {
-                "latitude": weather_data["latitude"],
-                "longitude": weather_data["longitude"],
-                "timezone": weather_data["timezone"],
-                "hourly": weather_data["hourly"],
-                "hourly_units": weather_data["hourly_units"],
-                "daily": weather_data["daily"],
-                "daily_units": weather_data["daily_units"]
+            "latitude": weather_data["latitude"],
+            "longitude": weather_data["longitude"],
+            "timezone": weather_data["timezone"],
+            "hourly": weather_data["hourly"],
+            "hourly_units": weather_data["hourly_units"],
+            "daily": weather_data["daily"],
+            "daily_units": weather_data["daily_units"]
         }
     }
 
