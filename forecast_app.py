@@ -32,7 +32,7 @@ def handle_invalid_usage(error):
     return response
 
 
-def get_location(location: str, country:str, count=20):
+def get_location(location: str, country: str, count=20):
     url_endpoint = "https://geocoding-api.open-meteo.com/v1/search"
     url = f"{url_endpoint}?name={location}&count={count}"
 
@@ -42,7 +42,7 @@ def get_location(location: str, country:str, count=20):
     response = requests.request("GET", url, headers=headers)
     data = json.loads(response.text)
     if data["results"]:
-        cities = data["results"].sort("population")
+        cities = {}[data["results"]].sort("population")
         for city in cities:
             if city["name"].upper() == location.upper() and city["country"].upper() == country.upper():
                 return {
